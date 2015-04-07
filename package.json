@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider/issues"
   },
-  "homepage": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider"
+  "homepage": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider",
+  "dependencies": {
+    "pg": "^4.3.0"
+  }
 }
