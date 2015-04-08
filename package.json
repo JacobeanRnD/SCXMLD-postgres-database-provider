@@ -1,8 +1,14 @@
 {
   "name": "SCXMLD-postgres-database-provider",
-  "version": "1.0.0",
+  "version": "0.0.1a",
   "description": "SCXMLD postgres database provider",
   "main": "index.js",
+  "license": "Apache-2.0",
+  "author": {
+    "name" : "Jacob Beard",
+    "email" : "jake@jacobeanrnd.com",
+    "url" : "http://github.com/jbeard4"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,8 +20,6 @@
     "scxml",
     "postgres"
   ],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider/issues"
   },
