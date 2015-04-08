@@ -5,9 +5,9 @@
   "main": "index.js",
   "license": "Apache-2.0",
   "author": {
-    "name" : "Jacob Beard",
-    "email" : "jake@jacobeanrnd.com",
-    "url" : "http://github.com/jbeard4"
+    "name" : "Feyzullah Daldal",
+    "email" : "hey@feyzo.net",
+    "url" : "http://feyzo.net/"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
