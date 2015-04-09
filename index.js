@@ -190,6 +190,17 @@ module.exports = function (opts) {
     });
   };
 
+  db.getEvents = function (instanceId, done) {
+    db.query({
+      text: 'SELECT * FROM events WHERE instanceId = $1',
+      values: [instanceId]
+    }, function (error, result) {
+      if(error) return done(error);
+
+      done(null, result.rows);
+    });
+  };
+
   db.set = function (key, value, done) {
     var values = [key, value];
     db.query({
