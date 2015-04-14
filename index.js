@@ -27,7 +27,7 @@ module.exports = function (opts) {
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
         
         'CREATE TABLE IF NOT EXISTS' + 
-        ' events(created TIMESTAMP WITH TIME ZONE primary key DEFAULT NOW(),' +
+        ' events(timestamp TIMESTAMP WITH TIME ZONE primary key DEFAULT NOW(),' +
         ' instanceId varchar REFERENCES instances(id) ON DELETE CASCADE,' +
         ' event JSON,' +
         ' snapshot JSON)',
@@ -181,8 +181,8 @@ module.exports = function (opts) {
 
   db.saveEvent = function (instanceId, details, done) {
     db.query({
-      text: 'INSERT INTO events (instanceId, event, snapshot, created) VALUES($1, $2, $3, $4)',
-      values: [instanceId, JSON.stringify(details.event), JSON.stringify(details.resultSnapshot), details.timestamp]
+      text: 'INSERT INTO events (instanceId, event, snapshot, timestamp) VALUES($1, $2, $3, $4)',
+      values: [instanceId, JSON.stringify(details.event), JSON.stringify(details.snapshot), details.timestamp]
     }, function (error) {
       if(error) return done(error);
 
