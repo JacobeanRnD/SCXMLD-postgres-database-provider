@@ -133,8 +133,6 @@ module.exports = function (opts) {
   };
 
   db.saveInstance = function (chartName, instanceId, conf, done) {
-    console.log('saving conf', JSON.stringify(conf));
-
     db.updateInstance(chartName, instanceId, conf, function (error, result) {
       if(error) return done(error);
 
@@ -164,7 +162,6 @@ module.exports = function (opts) {
     }, function (error, result) {
       if(error) return done(error);
 
-      console.log('getting conf', result.rows[0]);
       if(result.rowCount > 0)
         done(null, result.rows[0].configuration);
       else
