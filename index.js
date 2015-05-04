@@ -18,7 +18,6 @@ module.exports = function (opts) {
       var schemas = [
         'CREATE TABLE IF NOT EXISTS ' +
         ' statecharts(name varchar primary key,' +
-        ' scxml varchar,' +
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
 
         'CREATE TABLE IF NOT EXISTS' +
@@ -67,7 +66,7 @@ module.exports = function (opts) {
     });
   };
     
-  db.saveStatechart = function (user, name, scxmlString, done) {
+  db.saveStatechart = function (user, name, done) {
       var insertQuery = {
         text: 'INSERT INTO statecharts (name, scxml) VALUES($1, $2)',
         values: [name, scxmlString]
