@@ -67,24 +67,15 @@ module.exports = function (opts) {
   };
     
   db.saveStatechart = function (user, name, done) {
-      var insertQuery = {
-        text: 'INSERT INTO statecharts (name, scxml) VALUES($1, $2)',
-        values: [name, scxmlString]
-      }, 
-      updateQuery = {
-        text: 'UPDATE statecharts SET scxml = $2 WHERE name = $1',
-        values: [name, scxmlString]
-      };
+    var insertQuery = {
+      text: 'INSERT INTO statecharts (name) VALUES($1)',
+      values: [name]
+    };
 
-    db.query(updateQuery, function (error, result) {
+    db.query(insertQuery, function (error) {
       if(error) return done(error);
-      if(result.rowCount > 0) return done();
 
-      db.query(insertQuery, function (error) {
-        if(error) return done(error);
-
-        done();
-      });
+      done();
     });
   };
 
@@ -99,7 +90,7 @@ module.exports = function (opts) {
 
       if(!statechart) return done();
       
-      done(null, statechart.scxml);
+      done(null, statechart.name);
     });
   };
 
