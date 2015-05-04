@@ -70,7 +70,7 @@ module.exports = function (opts) {
     db.getStatechart(name,function(err, statechart){
       if(err) return done(err);
 
-      if(statechart) done();  //statechart already exists. noop
+      if(statechart) return done();  //statechart already exists. noop
       
       var insertQuery = {
         text: 'INSERT INTO statecharts (name) VALUES($1)',
