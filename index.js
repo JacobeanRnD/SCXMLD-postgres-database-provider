@@ -1,14 +1,12 @@
 'use strict';
 
 var pg = require('pg'),
-  async = require('async'),
-  debug = require('debug')('SCXMLD-postgres-database-provider');
+  async = require('async');
 
 module.exports = function (opts) {
   var db = {};
   opts = opts || {};
   opts.connectionString = opts.connectionString || process.env.POSTGRES_URL || 'postgres://postgres:test@localhost:5432/scxmld';
-  debug('opts.connectionString',opts.connectionString);
 
   db.init = function (initialized) {
     pg.connect(opts.connectionString, function (connectError, client, done) {
@@ -18,10 +16,15 @@ module.exports = function (opts) {
       }
 
       var schemas = [
+        'CREATE TABLE IF NOT EXISTS ' +
+        ' statecharts(name varchar primary key,' +
+        ' scxml varchar,' +
+        ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
+
         'CREATE TABLE IF NOT EXISTS' +
         ' instances(id varchar primary key,' +
         ' configuration JSON,' +
-        ' statechartName name,' +
+        ' statechartName name REFERENCES statecharts(name) ON DELETE CASCADE,' +
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
         
         'CREATE TABLE IF NOT EXISTS' + 
@@ -64,7 +67,54 @@ module.exports = function (opts) {
     });
   };
     
-  //fix this
+  db.saveStatechart = function (user, name, scxmlString, done) {
+      var insertQuery = {
+        text: 'INSERT INTO statecharts (name, scxml) VALUES($1, $2)',
+        values: [name, scxmlString]
+      }, 
+      updateQuery = {
+        text: 'UPDATE statecharts SET scxml = $2 WHERE name = $1',
+        values: [name, scxmlString]
+      };
+
+    db.query(updateQuery, function (error, result) {
+      if(error) return done(error);
+      if(result.rowCount > 0) return done();
+
+      db.query(insertQuery, function (error) {
+        if(error) return done(error);
+
+        done();
+      });
+    });
+  };
+
+  db.getStatechart = function (name, done) {
+    db.query({
+      text: 'SELECT * FROM statecharts WHERE name = $1',
+      values: [name]
+    }, function (error, result) {
+      if(error) return done(error);
+
+      var statechart = result.rows[0];
+
+      if(!statechart) return done();
+      
+      done(null, statechart.scxml);
+    });
+  };
+
+  db.deleteStatechart = function (chartName, done) {
+    db.query({
+      text: 'DELETE FROM statecharts WHERE name = $1',
+      values: [chartName]
+    }, function (error) {
+      if(error) return done(error);
+
+      done();
+    });
+  };
+
   db.getStatechartList = function (user, done) {
     var selectQuery = {
         text: 'SELECT * FROM statecharts',
@@ -83,9 +133,7 @@ module.exports = function (opts) {
   };
 
   db.saveInstance = function (chartName, instanceId, conf, done) {
-    debug('instanceId, JSON.stringify(conf), chartName',instanceId, JSON.stringify(conf), chartName);
     db.updateInstance(chartName, instanceId, conf, function (error, result) {
-      debug('db.updateInstance error, result',error, result);
       if(error) return done(error);
 
       if(result.rowCount > 0) return done();
@@ -94,12 +142,7 @@ module.exports = function (opts) {
       db.query({
         text: 'INSERT INTO instances (id, configuration, statechartName) VALUES($1, $2, $3)',
         values: [instanceId, JSON.stringify(conf), chartName]
-      }, function(error, result){
-        debug('INSERT INTO instances error, result',error, result);
-        if(error) return done(error);
-
-        if(result.rowCount > 0) return done();
-      });
+      }, done);
     });
 
     
@@ -117,7 +160,6 @@ module.exports = function (opts) {
       text: 'SELECT * FROM instances WHERE id = $1',
       values: [instanceId]
     }, function (error, result) {
-      debug('chartName, instanceId',chartName, instanceId,error, result);
       if(error) return done(error);
 
       if(result.rowCount > 0)
