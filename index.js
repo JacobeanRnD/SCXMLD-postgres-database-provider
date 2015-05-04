@@ -5,8 +5,8 @@ var pg = require('pg'),
 
 module.exports = function (opts) {
   var db = {};
-  opts = opts || {};
-  opts.connectionString = opts.connectionString || process.env.POSTGRES_URL || 'postgres://postgres:test@localhost:5432/scxmld';
+  opts = opts || {};
+  opts.connectionString = opts.connectionString || process.env.POSTGRES_URL || 'postgres://postgres:test@localhost:5432/scxmld';
 
   db.init = function (initialized) {
     pg.connect(opts.connectionString, function (connectError, client, done) {
@@ -18,7 +18,6 @@ module.exports = function (opts) {
       var schemas = [
         'CREATE TABLE IF NOT EXISTS ' +
         ' statecharts(name varchar primary key,' +
-        ' scxml varchar,' +
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
 
         'CREATE TABLE IF NOT EXISTS' +
@@ -67,25 +66,23 @@ module.exports = function (opts) {
     });
   };
     
-  db.saveStatechart = function (user, name, scxmlString, done) {
-      var insertQuery = {
-        text: 'INSERT INTO statecharts (name, scxml) VALUES($1, $2)',
-        values: [name, scxmlString]
-      }, 
-      updateQuery = {
-        text: 'UPDATE statecharts SET scxml = $2 WHERE name = $1',
-        values: [name, scxmlString]
-      };
+  db.saveStatechart = function (user, name, done) {
+    db.getStatechart(name,function(err, statechart){
+      if(err) return done(err);
 
-    db.query(updateQuery, function (error, result) {
-      if(error) return done(error);
-      if(result.rowCount > 0) return done();
+      if(statechart) return done();  //statechart already exists. noop
+      
+      var insertQuery = {
+        text: 'INSERT INTO statecharts (name) VALUES($1)',
+        values: [name]
+      };
 
       db.query(insertQuery, function (error) {
         if(error) return done(error);
 
         done();
       });
+
     });
   };
 
@@ -100,7 +97,7 @@ module.exports = function (opts) {
 
       if(!statechart) return done();
       
-      done(null, statechart.scxml);
+      done(null, statechart.name);
     });
   };
 
