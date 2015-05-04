@@ -67,15 +67,22 @@ module.exports = function (opts) {
   };
     
   db.saveStatechart = function (user, name, done) {
-    var insertQuery = {
-      text: 'INSERT INTO statecharts (name) VALUES($1)',
-      values: [name]
-    };
+    db.getStatechart(name,function(err, statechart){
+      if(err) return done(err);
 
-    db.query(insertQuery, function (error) {
-      if(error) return done(error);
+      if(statechart) done();  //statechart already exists. noop
+      
+      var insertQuery = {
+        text: 'INSERT INTO statecharts (name) VALUES($1)',
+        values: [name]
+      };
 
-      done();
+      db.query(insertQuery, function (error) {
+        if(error) return done(error);
+
+        done();
+      });
+
     });
   };
 
