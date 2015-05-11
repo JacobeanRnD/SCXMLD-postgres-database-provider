@@ -23,6 +23,7 @@ module.exports = function (opts) {
 
         'CREATE TABLE IF NOT EXISTS' +
         ' instances(id varchar primary key,' +
+        ' configuration JSON,' +
         ' statechartName name REFERENCES statecharts(name) ON DELETE CASCADE,' +
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
         
@@ -131,15 +132,27 @@ module.exports = function (opts) {
     });
   };
 
-  db.saveInstance = function (chartName, instanceId, done) {
-    db.query({
-      text: 'INSERT INTO instances (id, statechartName) VALUES($1, $2)',
-      values: [instanceId, chartName]
-    }, function (error) {
+  db.saveInstance = function (chartName, instanceId, conf, done) {
+    db.updateInstance(chartName, instanceId, conf, function (error, result) {
       if(error) return done(error);
 
-      done();
+      if(result.rowCount > 0) return done();
+
+      //Upsert
+      db.query({
+        text: 'INSERT INTO instances (id, configuration, statechartName) VALUES($1, $2, $3)',
+        values: [instanceId, JSON.stringify(conf), chartName]
+      }, done);
     });
+
+    
+  };
+
+  db.updateInstance = function (chartName, instanceId, conf, done) {
+    db.query({
+      text: 'UPDATE instances SET configuration = $1 WHERE id = $2',
+      values: [JSON.stringify(conf), instanceId]
+    }, done);
   };
 
   db.getInstance = function (chartName, instanceId, done) {
@@ -149,7 +162,10 @@ module.exports = function (opts) {
     }, function (error, result) {
       if(error) return done(error);
 
-      done(null, result.rowCount > 0);
+      if(result.rowCount > 0)
+        done(null, result.rows[0].configuration);
+      else
+        done({ statusCode: 404 });
     });
   };
 
