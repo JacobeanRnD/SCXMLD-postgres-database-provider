@@ -5,8 +5,8 @@ var pg = require('pg'),
 
 module.exports = function (opts) {
   var db = {};
-  opts = opts || {};
-  opts.connectionString = opts.connectionString || process.env.POSTGRES_URL || 'postgres://postgres:test@localhost:5432/scxmld';
+  opts = opts || {};
+  opts.connectionString = opts.connectionString || process.env.POSTGRES_URL || 'postgres://postgres:test@localhost:5432/scxmld';
 
   db.init = function (initialized) {
     pg.connect(opts.connectionString, function (connectError, client, done) {
@@ -16,14 +16,9 @@ module.exports = function (opts) {
       }
 
       var schemas = [
-        'CREATE TABLE IF NOT EXISTS ' +
-        ' statecharts(name varchar primary key,' +
-        ' scxml varchar,' +
-        ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
-
         'CREATE TABLE IF NOT EXISTS' +
         ' instances(id varchar primary key,' +
-        ' statechartName name REFERENCES statecharts(name) ON DELETE CASCADE,' +
+        ' configuration JSON,' +
         ' created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW())',
         
         'CREATE TABLE IF NOT EXISTS' + 
@@ -65,98 +60,46 @@ module.exports = function (opts) {
       });
     });
   };
-    
-  db.saveStatechart = function (user, name, scxmlString, done) {
-      var insertQuery = {
-        text: 'INSERT INTO statecharts (name, scxml) VALUES($1, $2)',
-        values: [name, scxmlString]
-      }, 
-      updateQuery = {
-        text: 'UPDATE statecharts SET scxml = $2 WHERE name = $1',
-        values: [name, scxmlString]
-      };
 
-    db.query(updateQuery, function (error, result) {
+  db.saveInstance = function (instanceId, conf, done) {
+    db.updateInstance(instanceId, conf, function (error, result) {
       if(error) return done(error);
+
       if(result.rowCount > 0) return done();
 
-      db.query(insertQuery, function (error) {
-        if(error) return done(error);
-
-        done();
-      });
+      //Upsert
+      db.query({
+        text: 'INSERT INTO instances (id, configuration) VALUES($1, $2)',
+        values: [instanceId, JSON.stringify(conf)]
+      }, done);
     });
   };
 
-  db.getStatechart = function (name, done) {
+  db.updateInstance = function (instanceId, conf, done) {
     db.query({
-      text: 'SELECT * FROM statecharts WHERE name = $1',
-      values: [name]
-    }, function (error, result) {
-      if(error) return done(error);
-
-      var statechart = result.rows[0];
-
-      if(!statechart) return done();
-      
-      done(null, statechart.scxml);
-    });
+      text: 'UPDATE instances SET configuration = $1 WHERE id = $2',
+      values: [JSON.stringify(conf), instanceId]
+    }, done);
   };
 
-  db.deleteStatechart = function (chartName, done) {
-    db.query({
-      text: 'DELETE FROM statecharts WHERE name = $1',
-      values: [chartName]
-    }, function (error) {
-      if(error) return done(error);
-
-      done();
-    });
-  };
-
-  db.getStatechartList = function (user, done) {
-    var selectQuery = {
-        text: 'SELECT * FROM statecharts',
-        values: []
-      };
-
-    db.query(selectQuery, function (error, result) {
-      if(error) return done(error);
-      
-      var statecharts = result.rows.map(function (statechart) {
-        return statechart.name;          
-      });
-
-      done(null, statecharts);
-    });
-  };
-
-  db.saveInstance = function (chartName, instanceId, done) {
-    db.query({
-      text: 'INSERT INTO instances (id, statechartName) VALUES($1, $2)',
-      values: [instanceId, chartName]
-    }, function (error) {
-      if(error) return done(error);
-
-      done();
-    });
-  };
-
-  db.getInstance = function (chartName, instanceId, done) {
+  db.getInstance = function (instanceId, done) {
     db.query({
       text: 'SELECT * FROM instances WHERE id = $1',
       values: [instanceId]
     }, function (error, result) {
       if(error) return done(error);
 
-      done(null, result.rowCount > 0);
+      if(result.rowCount > 0)
+        done(null, result.rows[0].configuration);
+      else
+        done({ statusCode: 404 });
     });
   };
 
-  db.getInstances = function (chartName, done) {
+  db.getInstances = function (done) {
     db.query({
-      text: 'SELECT * FROM instances WHERE statechartName = $1',
-      values: [chartName]
+      text: 'SELECT * FROM instances',
+      values: []
     }, function (error, result) {
       if(error) return done(error);
 
@@ -168,7 +111,7 @@ module.exports = function (opts) {
     });
   };
 
-  db.deleteInstance = function (chartName, instanceId, done) {
+  db.deleteInstance = function (instanceId, done) {
     db.query({
       text: 'DELETE FROM instances WHERE id = $1',
       values: [instanceId]
