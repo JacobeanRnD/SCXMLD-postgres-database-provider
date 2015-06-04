@@ -44,10 +44,17 @@ module.exports = function (opts) {
         if(err) {
           console.log('Error initializing postgres.', err);
         }
-        
-        client.end();
-        done();
-        initialized(err);
+
+        if(!opts.modelName) return finish();
+
+        //init the statechart
+        db.saveStatechart(opts.modelName, finish);
+
+        function finish(err){
+          client.end();
+          done();
+          initialized(err);
+        }
       });
     });
   };
@@ -66,7 +73,7 @@ module.exports = function (opts) {
     });
   };
     
-  db.saveStatechart = function (user, name, done) {
+  db.saveStatechart = function (name, done) {
     db.getStatechart(name,function(err, statechart){
       if(err) return done(err);
 
@@ -141,8 +148,6 @@ module.exports = function (opts) {
         values: [instanceId, JSON.stringify(conf), chartName]
       }, done);
     });
-
-    
   };
 
   db.updateInstance = function (chartName, instanceId, conf, done) {
