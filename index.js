@@ -208,7 +208,7 @@ module.exports = function (opts) {
     });
   };
 
-  db.getEvents = function (instanceId, done) {
+  db.getEvents = function (modelName, instanceId, done) {
     db.query({
       text: 'SELECT * FROM events WHERE instanceId = $1',
       values: [instanceId]
