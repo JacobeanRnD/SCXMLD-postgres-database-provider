@@ -1,9 +1,9 @@
 {
-  "name": "SCXMLD-postgres-database-provider",
-  "version": "0.0.1a",
-  "description": "SCXMLD postgres database provider",
+  "name": "expresscion-postgres-database-provider",
+  "version": "1.0.0",
+  "description": "expresscion postgres database provider",
   "main": "index.js",
-  "license": "AGPL-3.0",
+  "license": "Apache-2.0",
   "author": {
     "name" : "Feyzullah Daldal",
     "email" : "hey@feyzo.net",
@@ -14,16 +14,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:JacobeanRnD/SCXMLD-postgres-database-provider.git"
+    "url": "git@github.com:JacobeanRnD/expresscion-postgres-database-provider.git"
   },
   "keywords": [
     "scxml",
     "postgres"
   ],
   "bugs": {
-    "url": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider/issues"
+    "url": "https://github.com/JacobeanRnD/expresscion-postgres-database-provider/issues"
   },
-  "homepage": "https://github.com/JacobeanRnD/SCXMLD-postgres-database-provider",
+  "homepage": "https://github.com/JacobeanRnD/expresscion-postgres-database-provider",
   "dependencies": {
     "async": "^0.9.0",
     "pg": "^4.3.0"
